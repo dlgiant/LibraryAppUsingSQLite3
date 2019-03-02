@@ -15,11 +15,13 @@ import (
 	"net/url"
 )
 
+// Struc to define Page
 type Page struct {
 	Name     string
 	DBStatus bool
 }
 
+// Struct to define SearchResult
 type SearchResult struct {
 	Title  string `xml:"title,attr"`
 	Author string `xml:"author,attr"`
@@ -66,10 +68,32 @@ func main() {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	})
+	//
+	// http.HandleFunc("/books/add", func(w http.ResponseWriter, r *http.Request) {
+	// 	var book ClassifyBookResponse
+	// 	var err error
+	//
+	// 	fmt.Println("ID: ", r.FormValue("id"))
+	//
+	// 	if book, err = find(r.FormValue("id")); err != nil {
+	// 		http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	}
+	// 	if err = db.Ping(); err != nil {
+	// 		http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	}
+	//
+	// 	_, err = db.Exec("insert into books (pk, title, author, id, classification) values (?, ?, ?, ?, ?)",
+	// 		nil, book.BookData.Title, book.BookData.Author, book.BookData.ID, book.Classification.MostPopular)
+	// 	if err != nil {
+	// 		http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	}
+	//
+	// })
 
 	http.HandleFunc("/books/add", func(w http.ResponseWriter, r *http.Request) {
 		var book ClassifyBookResponse
 		var err error
+
 		if book, err = find(r.FormValue("id")); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -79,13 +103,13 @@ func main() {
 
 		_, err = db.Exec("insert into books (pk, title, author, id, classification) values (?, ?, ?, ?, ?)",
 			nil, book.BookData.Title, book.BookData.Author, book.BookData.ID, book.Classification.MostPopular)
+
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-
 	})
 
-	fmt.Println(http.ListenAndServe(":8080", nil))
+	fmt.Println(http.ListenAndServe(":8041", nil))
 }
 
 type ClassifySearchResponse struct {
@@ -103,9 +127,34 @@ type ClassifyBookResponse struct {
 	} `xml:"recommendations>ddc>mostPopular"`
 }
 
+//
+// func find(id string) (ClassifyBookResponse, error) {
+// 	var c ClassifyBookResponse
+// 	body, err := classifyAPI("http://classify.oclc.org/classify2/Classify?summary=true&owi=" + url.QueryEscape(id))
+//
+// 	if err != nil {
+// 		return ClassifyBookResponse{}, err
+// 	}
+//
+// 	err = xml.Unmarshal(body, &c)
+// 	return c, err
+// }
+//
+// func search(query string) ([]SearchResult, error) {
+// 	var c ClassifySearchResponse
+// 	body, err := classifyAPI("http://classify.oclc.org/classify2/Classify?summary=true&title=" + url.QueryEscape(query))
+//
+// 	if err != nil {
+// 		return []SearchResult{}, err
+// 	}
+//
+// 	err = xml.Unmarshal(body, &c)
+// 	return c.Results, err
+// }
+
 func find(id string) (ClassifyBookResponse, error) {
 	var c ClassifyBookResponse
-	body, err := classifyAPI("http://classify.cclc.org/classify2/Classify?summary=true&owi=" + url.QueryEscape(id))
+	body, err := classifyAPI("http://classify.oclc.org/classify2/Classify?summary=true&owi=" + url.QueryEscape(id))
 
 	if err != nil {
 		return ClassifyBookResponse{}, err
